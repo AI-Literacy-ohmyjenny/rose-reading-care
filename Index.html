@@ -1,0 +1,66 @@
+<!DOCTYPE html>
+<html lang="ko">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>로즈 독서상담 - Rose Reading Care</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@300;400;500;600;700&family=Gowun+Batang:wght@400;700&display=swap"
+      rel="stylesheet"
+    />
+    <link rel="stylesheet" href="Style.css" />
+  </head>
+  <body>
+    <!-- 시작 오버레이: 브라우저 오디오 정책 해제용 -->
+    <div id="startOverlay" class="start-overlay">
+      <div class="start-card">
+        <div class="start-icon">📖</div>
+        <h1 class="start-title">로즈 독서상담</h1>
+        <p class="start-desc">로즈 선생님과 함께 책을 읽어볼까요?</p>
+        <button type="button" id="startBtn" class="btn-start">시작하기</button>
+      </div>
+    </div>
+
+    <div class="app-container">
+      <aside class="left-panel">
+        <div class="image-area">
+          <img id="sceneImage" src="" alt="장면 이미지" class="scene-image" />
+          <div class="image-placeholder" id="imagePlaceholder">
+            독서의 세계로 출발해요
+          </div>
+        </div>
+        <div class="text-area">
+          <div id="passageContent" class="passage-text"></div>
+        </div>
+      </aside>
+      <main class="right-panel">
+        <div class="teacher-area">
+          <div class="teacher-avatar" id="teacherAvatar">
+            <div class="avatar-placeholder">
+              <span class="avatar-icon">👩‍🏫</span>
+              <span class="avatar-label">로즈 선생님</span>
+            </div>
+          </div>
+        </div>
+        <div class="chat-area">
+          <div id="chatMessages" class="chat-messages"></div>
+          <div class="chat-input-area">
+            <textarea
+              id="studentInput"
+              class="student-input"
+              placeholder="선생님께 할 말을 적거나 마이크를 눌러보세요..."
+              rows="3"
+            ></textarea>
+            <div class="chat-btn-row">
+              <button type="button" id="micBtn" class="btn-mic" title="음성 인식">🎙️</button>
+              <button type="button" id="sendBtn" class="btn-send">전송</button>
+            </div>
+          </div>
+        </div>
+      </main>
+    </div>
+    <script src="Script.js"></script>
+  </body>
+</html>

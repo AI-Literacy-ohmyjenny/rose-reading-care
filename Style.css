@@ -1,0 +1,589 @@
+/**
+ * Rose Reading Care - 초등 독서상담 웹앱
+ * UI 이미지 기반 따뜻한 동화풍 파스텔톤
+ * 타겟: 초등학생 - 큰 글자, 둥근 모서리, 친근한 컬러
+ */
+
+/* ========== CSS 변수 (UI 이미지 기반 팔레트) ========== */
+:root {
+  /* 메인 컬러 - 따뜻한 크림/피치 계열 */
+  --color-cream: #fdf6ee;
+  --color-warm-white: #faf3ea;
+  --color-peach: #fde8d8;
+  --color-blush: #f8e4dc;
+
+  /* 왼쪽 패널 - 동화풍 네이비/슬레이트 */
+  --color-navy: #3b4d6b;
+  --color-navy-light: #4a5f80;
+
+  /* 포인트 컬러 */
+  --color-coral: #e8967e;
+  --color-coral-deep: #d4816b;
+  --color-sky: #a8d0e6;
+  --color-sage: #b5cfb5;
+  --color-lavender: #c9b8de;
+  --color-yellow-soft: #fce4a8;
+
+  /* 텍스트 */
+  --color-text-dark: #3a3a3a;
+  --color-text-medium: #5c5c5c;
+  --color-text-light: #8b8b8b;
+  --color-text-on-dark: #ffffff;
+
+  /* 폰트 */
+  --font-sans: "Noto Sans KR", -apple-system, BlinkMacSystemFont, sans-serif;
+  --font-serif: "Gowun Batang", "Noto Serif KR", serif;
+
+  /* 간격 */
+  --spacing-xs: 0.5rem;
+  --spacing-sm: 1rem;
+  --spacing-md: 1.5rem;
+  --spacing-lg: 2rem;
+  --spacing-xl: 2.5rem;
+
+  /* 둥근 모서리 - 초등학생 친화적으로 더 둥글게 */
+  --radius-sm: 12px;
+  --radius-md: 18px;
+  --radius-lg: 24px;
+  --radius-pill: 50px;
+
+  /* 그림자 */
+  --shadow-soft: 0 2px 12px rgba(0, 0, 0, 0.06);
+  --shadow-card: 0 4px 20px rgba(0, 0, 0, 0.08);
+  --shadow-bubble: 0 3px 15px rgba(59, 77, 107, 0.1);
+}
+
+/* ========== 시작 오버레이 ========== */
+.start-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 1000;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: linear-gradient(
+    135deg,
+    var(--color-cream) 0%,
+    var(--color-peach) 50%,
+    var(--color-blush) 100%
+  );
+  transition: opacity 0.5s ease-out;
+}
+
+.start-overlay.is-hidden {
+  opacity: 0;
+  pointer-events: none;
+}
+
+.start-card {
+  text-align: center;
+  padding: var(--spacing-xl) var(--spacing-xl);
+  animation: start-float 3s ease-in-out infinite;
+}
+
+@keyframes start-float {
+  0%, 100% { transform: translateY(0); }
+  50%      { transform: translateY(-8px); }
+}
+
+.start-icon {
+  font-size: 4rem;
+  margin-bottom: var(--spacing-sm);
+}
+
+.start-title {
+  font-family: var(--font-serif);
+  font-size: 2.2rem;
+  font-weight: 700;
+  color: var(--color-navy);
+  margin-bottom: var(--spacing-xs);
+}
+
+.start-desc {
+  font-size: 1.15rem;
+  color: var(--color-text-medium);
+  margin-bottom: var(--spacing-lg);
+}
+
+.btn-start {
+  display: inline-block;
+  padding: 0.9rem 2.8rem;
+  font-family: var(--font-sans);
+  font-size: 1.2rem;
+  font-weight: 700;
+  color: #fff;
+  background: linear-gradient(
+    135deg,
+    var(--color-coral) 0%,
+    var(--color-coral-deep) 100%
+  );
+  border: none;
+  border-radius: var(--radius-pill);
+  cursor: pointer;
+  box-shadow: 0 4px 20px rgba(232, 150, 126, 0.4);
+  transition: transform 0.2s, box-shadow 0.2s;
+}
+
+.btn-start:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 28px rgba(232, 150, 126, 0.5);
+}
+
+.btn-start:active {
+  transform: translateY(0);
+}
+
+/* ========== 리셋 & 기본 ========== */
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+html {
+  font-size: 17px;
+  -webkit-font-smoothing: antialiased;
+  height: 100%;
+  overflow: hidden;
+}
+
+body {
+  font-family: var(--font-sans);
+  color: var(--color-text-dark);
+  background: var(--color-cream);
+  height: 100vh;
+  overflow: hidden;
+  line-height: 1.7;
+}
+
+/* ========== 앱 레이아웃 ========== */
+.app-container {
+  display: flex;
+  height: 100vh;
+  width: 100%;
+  max-width: 1400px;
+  margin: 0 auto;
+  overflow: hidden;
+  border-radius: var(--radius-lg);
+  box-shadow: 0 8px 40px rgba(59, 77, 107, 0.12);
+}
+
+/* ========== 왼쪽 패널 (이미지 + 지문) ========== */
+.left-panel {
+  flex: 2;
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+  min-height: 0;
+  overflow: hidden;
+  background: var(--color-navy);
+  position: relative;
+}
+
+.image-area {
+  flex: 1;
+  min-height: 280px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: var(--spacing-md);
+  position: relative;
+  overflow: hidden;
+}
+
+.scene-image {
+  max-width: 100%;
+  max-height: 100%;
+  object-fit: contain;
+  border-radius: var(--radius-md);
+}
+
+.image-placeholder {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  color: rgba(255, 255, 255, 0.7);
+  font-size: 1.2rem;
+  text-align: center;
+  padding: var(--spacing-lg);
+}
+
+.text-area {
+  flex: 0 0 auto;
+  min-height: 220px;
+  max-height: 50%;
+  padding: var(--spacing-lg) var(--spacing-xl);
+  overflow-y: auto;
+  background: rgba(0, 0, 0, 0.45);
+  backdrop-filter: blur(4px);
+}
+
+.passage-text {
+  font-family: var(--font-serif);
+  font-size: 1.5rem;
+  line-height: 2.2;
+  color: var(--color-text-on-dark);
+  max-width: 720px;
+}
+
+.passage-text br {
+  display: block;
+  content: "";
+  margin-top: 0.5em;
+}
+
+/* ========== 오른쪽 패널 (AI 선생님 + 대화) ========== */
+.right-panel {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+  min-height: 0;
+  overflow: hidden;
+  background: var(--color-warm-white);
+}
+
+/* 캐릭터 영역 - 기존 40% → 10% (1/4 수준) */
+.teacher-area {
+  flex: 0 0 auto;
+  padding: var(--spacing-sm) var(--spacing-md);
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-sm);
+  background: linear-gradient(
+    180deg,
+    var(--color-peach) 0%,
+    var(--color-warm-white) 100%
+  );
+  border-bottom: 2px solid rgba(232, 150, 126, 0.2);
+}
+
+.teacher-avatar {
+  width: 56px;
+  height: 56px;
+  border-radius: 50%;
+  background: linear-gradient(145deg, #fff 0%, var(--color-peach) 100%);
+  box-shadow: var(--shadow-soft);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border: 3px solid var(--color-coral);
+  flex-shrink: 0;
+}
+
+.avatar-placeholder {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0;
+}
+
+.avatar-icon {
+  font-size: 1.6rem;
+  line-height: 1;
+}
+
+.avatar-label {
+  display: none;
+}
+
+/* 캐릭터 옆 선생님 이름 + 상태 표시 */
+.teacher-area::after {
+  content: "로즈 선생님";
+  font-size: 1rem;
+  font-weight: 600;
+  color: var(--color-coral-deep);
+  transition: opacity 0.3s;
+}
+
+/* ========== 읽기 상태 애니메이션 ========== */
+.teacher-area.is-reading .teacher-avatar {
+  animation: reading-pulse 1.5s ease-in-out infinite;
+  border-color: var(--color-sky);
+}
+
+.teacher-area.is-reading::after {
+  content: "선생님이 읽어주는 중...";
+  color: var(--color-navy-light);
+  animation: reading-dots 1.5s steps(3) infinite;
+}
+
+@keyframes reading-pulse {
+  0%, 100% {
+    box-shadow: 0 0 0 0 rgba(168, 208, 230, 0.4);
+  }
+  50% {
+    box-shadow: 0 0 0 10px rgba(168, 208, 230, 0);
+  }
+}
+
+@keyframes reading-dots {
+  0%   { content: "선생님이 읽어주는 중."; }
+  33%  { content: "선생님이 읽어주는 중.."; }
+  66%  { content: "선생님이 읽어주는 중..."; }
+}
+
+/* ========== 대화 영역 - 확장됨 ========== */
+.chat-area {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
+  overflow: hidden;
+  padding: var(--spacing-sm) var(--spacing-md);
+}
+
+.chat-messages {
+  flex: 1;
+  min-height: 0;
+  overflow-y: auto;
+  padding: var(--spacing-xs) var(--spacing-xs) var(--spacing-sm);
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-sm);
+  scroll-behavior: smooth;
+}
+
+/* 스크롤바 스타일링 */
+.chat-messages::-webkit-scrollbar {
+  width: 6px;
+}
+
+.chat-messages::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.chat-messages::-webkit-scrollbar-thumb {
+  background: rgba(232, 150, 126, 0.3);
+  border-radius: 3px;
+}
+
+/* 말풍선 스타일 */
+.message-wrapper {
+  background: #ffffff;
+  border-radius: var(--radius-md);
+  padding: var(--spacing-sm) var(--spacing-md);
+  box-shadow: var(--shadow-bubble);
+  border-left: 5px solid var(--color-coral);
+  position: relative;
+  /* 등장 애니메이션 */
+  opacity: 1;
+  transform: translateY(0);
+  transition: opacity 0.35s ease-out, transform 0.35s ease-out;
+}
+
+/* 말풍선 등장 시작 상태 (JS에서 즉시 제거하여 transition 발동) */
+.message-wrapper.message-enter {
+  opacity: 0;
+  transform: translateY(12px);
+}
+
+.message-speaker {
+  font-size: 0.85rem;
+  font-weight: 700;
+  color: var(--color-coral);
+  margin-bottom: 0.3rem;
+}
+
+.message-content {
+  font-size: 1.05rem;
+  line-height: 1.8;
+  color: var(--color-text-dark);
+}
+
+.message-content br {
+  display: block;
+  content: "";
+  margin-top: 0.4em;
+}
+
+/* 학생 말풍선 */
+.message-student {
+  background: var(--color-peach);
+  border-left: 5px solid var(--color-sky);
+}
+
+.message-student .message-speaker {
+  color: var(--color-navy);
+}
+
+/* ========== 입력 영역 (수직 구조) ========== */
+.chat-input-area {
+  flex-shrink: 0;
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-xs);
+  padding: var(--spacing-sm) 0 var(--spacing-xs);
+  border-top: 1px solid rgba(232, 150, 126, 0.2);
+}
+
+/* 입력창 - 가로 100% */
+.student-input {
+  width: 100%;
+  min-height: 78px;
+  max-height: 140px;
+  padding: 0.8rem 1rem;
+  font-family: var(--font-sans);
+  font-size: 1.05rem;
+  line-height: 1.6;
+  color: var(--color-text-dark);
+  background: #ffffff;
+  border: 2px solid var(--color-peach);
+  border-radius: var(--radius-md);
+  outline: none;
+  resize: none;
+  transition: border-color 0.2s, box-shadow 0.2s;
+}
+
+/* 버튼 행 - 입력창 아래 좌우 배치 */
+.chat-btn-row {
+  display: flex;
+  gap: var(--spacing-xs);
+}
+
+/* 마이크 버튼 (왼쪽) */
+.btn-mic {
+  flex: 1;
+  height: 44px;
+  padding: 0;
+  font-size: 1.3rem;
+  line-height: 1;
+  background: linear-gradient(135deg, var(--color-yellow-soft) 0%, #f5d78e 100%);
+  border: 2px solid rgba(252, 228, 168, 0.6);
+  border-radius: var(--radius-md);
+  cursor: pointer;
+  transition: transform 0.2s, box-shadow 0.2s;
+  box-shadow: 0 2px 8px rgba(252, 228, 168, 0.3);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.btn-mic:hover:not(:disabled) {
+  transform: translateY(-1px);
+  box-shadow: 0 4px 14px rgba(252, 228, 168, 0.5);
+}
+
+.btn-mic:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+  box-shadow: none;
+}
+
+/* 녹음 중 깜빡임 */
+.btn-mic.is-recording {
+  animation: mic-pulse 1s ease-in-out infinite;
+  border-color: #e87c6c;
+  background: linear-gradient(135deg, #ffd6d0 0%, #ffb8ab 100%);
+}
+
+@keyframes mic-pulse {
+  0%, 100% { opacity: 1; box-shadow: 0 0 0 0 rgba(232, 124, 108, 0.4); }
+  50%      { opacity: 0.7; box-shadow: 0 0 0 8px rgba(232, 124, 108, 0); }
+}
+
+.student-input::placeholder {
+  color: var(--color-text-light);
+  font-size: 0.95rem;
+}
+
+.student-input:focus {
+  border-color: var(--color-coral);
+  box-shadow: 0 0 0 3px rgba(232, 150, 126, 0.2);
+}
+
+.student-input:disabled {
+  background: var(--color-cream);
+  opacity: 0.7;
+}
+
+/* 음성 인식 중 입력창 - 부드러운 파스텔 글로우 */
+.student-input.is-listening {
+  border-color: var(--color-coral);
+  box-shadow:
+    0 0 0 3px rgba(232, 150, 126, 0.25),
+    0 0 12px rgba(232, 150, 126, 0.2),
+    0 0 24px rgba(200, 184, 222, 0.15);
+  animation: listening-glow 2s ease-in-out infinite;
+}
+
+@keyframes listening-glow {
+  0%, 100% {
+    box-shadow:
+      0 0 0 3px rgba(232, 150, 126, 0.25),
+      0 0 12px rgba(232, 150, 126, 0.2),
+      0 0 24px rgba(200, 184, 222, 0.15);
+  }
+  50% {
+    box-shadow:
+      0 0 0 4px rgba(168, 208, 230, 0.3),
+      0 0 16px rgba(168, 208, 230, 0.25),
+      0 0 30px rgba(232, 150, 126, 0.15);
+  }
+}
+
+.btn-send {
+  flex-shrink: 0;
+  padding: 0.7rem 1.4rem;
+  font-family: var(--font-sans);
+  font-size: 1.05rem;
+  font-weight: 700;
+  color: #fff;
+  background: linear-gradient(
+    135deg,
+    var(--color-coral) 0%,
+    var(--color-coral-deep) 100%
+  );
+  border: none;
+  border-radius: var(--radius-md);
+  cursor: pointer;
+  transition: transform 0.2s, box-shadow 0.2s;
+  box-shadow: 0 3px 12px rgba(232, 150, 126, 0.3);
+  min-height: 52px;
+}
+
+.btn-send:hover:not(:disabled) {
+  transform: translateY(-1px);
+  box-shadow: 0 5px 18px rgba(232, 150, 126, 0.4);
+}
+
+.btn-send:active:not(:disabled) {
+  transform: translateY(0);
+}
+
+.btn-send:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+  box-shadow: none;
+}
+
+/* ========== 반응형 ========== */
+@media (max-width: 900px) {
+  .app-container {
+    flex-direction: column;
+    height: 100vh;
+    border-radius: 0;
+  }
+
+  .left-panel,
+  .right-panel {
+    flex: 1;
+    min-height: 0;
+  }
+
+  .image-area {
+    min-height: 160px;
+  }
+
+  .teacher-area {
+    padding: var(--spacing-xs) var(--spacing-sm);
+  }
+
+  .teacher-avatar {
+    width: 44px;
+    height: 44px;
+  }
+}
