@@ -561,6 +561,73 @@ body {
   box-shadow: none;
 }
 
+/* ========== 반응형: 모바일 핵심 (≤768px) ========== */
+/* PC 환경은 전혀 영향 없음 — 모바일만 타겟팅 */
+@media (max-width: 768px) {
+  /* ── 레이아웃: 이미지 패널 축소, 대화 패널 확대 ── */
+  .left-panel {
+    flex: 0 0 25vh;
+    flex: 0 0 25dvh;
+  }
+
+  .right-panel {
+    flex: 1 1 0%;
+  }
+
+  /* ── 지문 폰트 축소 ── */
+  .text-area {
+    min-height: 50px;
+    max-height: 35%;
+    padding: 0.5rem 0.7rem;
+  }
+
+  .passage-text {
+    font-size: 0.9rem;
+    line-height: 1.7;
+  }
+
+  /* ── 말풍선 영역 최소 높이 2배 확보 ── */
+  .chat-area {
+    flex: 1 1 0%;
+    min-height: 45vh;
+    min-height: 45dvh;
+  }
+
+  .chat-messages {
+    flex: 1;
+    min-height: 0;
+  }
+
+  /* ── 말풍선 가독성 ── */
+  .message-content {
+    font-size: 0.95rem;
+    line-height: 1.7;
+  }
+
+  /* ── 입력 영역: 키보드 올라올 때 여유 공간 ── */
+  .chat-input-area {
+    padding-top: 0.6rem;
+    padding-bottom: env(safe-area-inset-bottom, 0.3rem);
+  }
+
+  /* ── 버튼 터치 영역 확보 ── */
+  .btn-mic {
+    min-width: 50px;
+    min-height: 48px;
+    font-size: 1.3rem;
+  }
+
+  .btn-send {
+    min-height: 48px;
+    font-size: 1rem;
+  }
+
+  .student-input {
+    min-height: 50px;
+    font-size: 1rem;
+  }
+}
+
 /* ========== 반응형: 태블릿 (≤900px) ========== */
 @media (max-width: 900px) {
   html {

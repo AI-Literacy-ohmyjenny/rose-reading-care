@@ -8,6 +8,11 @@ const GEMINI_API_KEY = "AIzaSyBkE4vKP4jkG7ZOaGSHxTxdgfAeww0GM3U";
 const GEMINI_MODEL = "gemini-2.0-flash";
 const GEMINI_API_URL = `https://generativelanguage.googleapis.com/v1beta/models/${GEMINI_MODEL}:generateContent`;
 
+// ========== 모바일 감지 ==========
+function isMobile() {
+  return window.innerWidth <= 768;
+}
+
 // ========== 설정 ==========
 const CSV_PATH = "./AI_독서상담_DB/시나리오.csv";
 const IMAGE_BASE_PATH = "./AI_독서상담_DB/Ai_Book1_001_images/";
@@ -628,7 +633,10 @@ async function advanceTeacher(pendingEmpathy = "") {
       studentInput.disabled = false;
       studentInput.value = "";
       studentInput.placeholder = PLACEHOLDER_DEFAULT;
-      studentInput.focus();
+      // 모바일: 자동 포커스 방지 (아이가 직접 터치할 때만 키보드 활성화)
+      if (!isMobile()) {
+        studentInput.focus();
+      }
       isAdvancing = false;
       return;
     }
@@ -985,7 +993,8 @@ function initSTT() {
 
   recognition = new SpeechRecognition();
   recognition.lang = "ko-KR";
-  recognition.continuous = true;          // 긴 문장도 끊기지 않도록
+  // 모바일: continuous 모드가 불안정하므로 단발 인식 사용
+  recognition.continuous = !isMobile();
   recognition.interimResults = true;      // 실시간 중간 결과 표시
   recognition.maxAlternatives = 1;
 
@@ -1029,12 +1038,20 @@ function initSTT() {
   };
 
   recognition.onend = () => {
-    // continuous 모드에서 예기치 않게 끊기면 재시작
     if (isListening) {
-      try {
-        recognition.start();
-      } catch (e) {
-        stopListening();
+      if (isMobile()) {
+        // 모바일 단발 모드: 인식 종료 시 텍스트가 있으면 자동 전송
+        const studentInput = document.getElementById("studentInput");
+        if (studentInput.value.trim()) {
+          stopListening();
+          handleSend();
+        } else {
+          // 텍스트 없으면 재시작 (아이가 아직 말하지 않은 경우)
+          try { recognition.start(); } catch (e) { stopListening(); }
+        }
+      } else {
+        // PC: continuous 모드에서 예기치 않게 끊기면 재시작
+        try { recognition.start(); } catch (e) { stopListening(); }
       }
     }
   };
@@ -1127,7 +1144,11 @@ document.addEventListener("DOMContentLoaded", () => {
   }, true);
 
   // 마이크 버튼의 mousedown/pointerdown도 차단 (OS 단축키 가로채기 방지)
-  ["mousedown", "pointerdown", "touchstart"].forEach((evt) => {
+  // 모바일에서는 touchstart 차단 시 click 이벤트까지 무시될 수 있으므로 제외
+  const micBlockEvents = isMobile()
+    ? ["mousedown", "pointerdown"]
+    : ["mousedown", "pointerdown", "touchstart"];
+  micBlockEvents.forEach((evt) => {
     micBtn.addEventListener(evt, (e) => {
       e.preventDefault();
       e.stopPropagation();
@@ -1168,6 +1189,18 @@ document.addEventListener("DOMContentLoaded", () => {
   // 시작 버튼: 클릭 시 오디오 활성화 + 시나리오 시작
   const startBtn = document.getElementById("startBtn");
   startBtn.addEventListener("click", activateAudioAndStart);
+
+  // ★ 모바일 가상 키보드 대응: 키보드가 올라오면 입력창이 보이도록 스크롤
+  if (isMobile() && window.visualViewport) {
+    window.visualViewport.addEventListener("resize", () => {
+      // 키보드가 올라오면 입력창을 뷰포트 안으로 스크롤
+      if (document.activeElement === studentInput) {
+        requestAnimationFrame(() => {
+          studentInput.scrollIntoView({ block: "end", behavior: "smooth" });
+        });
+      }
+    });
+  }
 
   // CSV 데이터를 미리 로드 (시작 버튼 클릭 전에 준비)
   preloadData();
