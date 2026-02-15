@@ -3,6 +3,11 @@
  * GitHub Pages 배포용 - 로컬 CSV + 상대경로 이미지
  */
 
+// ========== Gemini API 설정 ==========
+const GEMINI_API_KEY = "AIzaSyBkE4vKP4jkG7ZOaGSHxTxdgfAeww0GM3U";
+const GEMINI_MODEL = "gemini-2.0-flash";
+const GEMINI_API_URL = `https://generativelanguage.googleapis.com/v1beta/models/${GEMINI_MODEL}:generateContent`;
+
 // ========== 설정 ==========
 const CSV_PATH = "./AI_독서상담_DB/시나리오.csv";
 const IMAGE_BASE_PATH = "./AI_독서상담_DB/Ai_Book1_001_images/";
@@ -345,6 +350,84 @@ function mergeEmpathyAndScenario(empathy, scenarioText) {
   return empathy + " " + transition + " " + cleaned;
 }
 
+// ========== Gemini API 공감 호출 ==========
+
+/**
+ * 시나리오에서 다음 선생님 대사를 미리 찾는다.
+ * (Gemini가 자연스럽게 연결할 수 있도록 맥락 제공용)
+ */
+function peekNextTeacherText(fromIndex) {
+  for (let i = fromIndex; i < scenarioData.length; i++) {
+    if (scenarioData[i]["역할"] !== "학생") {
+      return scenarioData[i]["발화"] || "";
+    }
+  }
+  return "";
+}
+
+/**
+ * Gemini API를 호출하여 아이의 답변에 대한 공감 멘트를 생성한다.
+ * API 키가 없거나 호출 실패 시 기존 로컬 공감 시스템(buildEmpathy)으로 자동 폴백.
+ */
+async function callGeminiForEmpathy(studentText, lastTeacherText, nextTeacherText, currentPassage, viaMic) {
+  // API 키가 없으면 로컬 공감 사용
+  if (!GEMINI_API_KEY) {
+    return buildEmpathy(studentText, currentPassage, lastTeacherText, viaMic);
+  }
+
+  const systemPrompt = [
+    "너는 초등 독서상담가 '로즈 선생님'이야.",
+    "아이의 말을 경청하고 칭찬해준 뒤, 자연스럽게 다음 질문으로 대화를 이끌어가야 해.",
+    "",
+    "반드시 지켜야 할 규칙:",
+    "- 아이의 답변에 대해 따뜻하고 다정하게 1~2문장으로 공감하거나 칭찬해줘.",
+    "- 절대로 네가 새로운 질문을 만들지 마. 다음에 이어질 시나리오 대사가 별도로 있어.",
+    "- 아이의 말을 따옴표로 그대로 반복하지 마.",
+    "- 반말과 존댓말을 자연스럽게 섞어서 다정하게 말해. (예: '우와, 잘 생각했어요!')",
+    "- 초등학교 저학년(1~2학년)이 이해할 수 있는 쉬운 말만 써.",
+    "- 이모지, 특수문자, 마크다운 기호는 절대 쓰지 마.",
+    "- 응답은 반드시 1~2문장, 최대 60자 이내로 짧게 해.",
+  ].join("\n");
+
+  const userPrompt = [
+    `[선생님의 이전 질문]: ${lastTeacherText || "(없음)"}`,
+    `[아이의 답변]: ${studentText}`,
+    `[다음에 이어질 시나리오 대사]: ${nextTeacherText || "(없음)"}`,
+    currentPassage ? `[현재 읽고 있는 지문]: ${currentPassage}` : "",
+    "",
+    "위 맥락을 참고하여, 아이의 답변에 대해 따뜻하게 공감하는 짧은 말만 해줘.",
+  ].filter(Boolean).join("\n");
+
+  try {
+    const res = await fetch(`${GEMINI_API_URL}?key=${GEMINI_API_KEY}`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        system_instruction: { parts: [{ text: systemPrompt }] },
+        contents: [{ parts: [{ text: userPrompt }] }],
+        generationConfig: {
+          temperature: 0.75,
+          maxOutputTokens: 120,
+        },
+      }),
+    });
+
+    if (!res.ok) throw new Error(`Gemini API 오류 (${res.status})`);
+
+    const data = await res.json();
+    const geminiText = data.candidates?.[0]?.content?.parts?.[0]?.text?.trim();
+
+    if (geminiText) {
+      console.log("[Gemini] 공감 응답:", geminiText);
+      return geminiText;
+    }
+    throw new Error("빈 응답");
+  } catch (err) {
+    console.warn("[Gemini] API 호출 실패, 로컬 공감 사용:", err.message);
+    return buildEmpathy(studentText, currentPassage, lastTeacherText, viaMic);
+  }
+}
+
 // ========== CSV 파싱 ==========
 
 function parseCSVLine(line) {
@@ -609,9 +692,9 @@ function unlockInput() {
 }
 
 /**
- * 학생 전송 처리 (공감+시나리오 병합)
+ * 학생 전송 처리 (Gemini 공감 + 시나리오 병합)
  */
-function handleSend() {
+async function handleSend() {
   const studentInput = document.getElementById("studentInput");
 
   // 선생님 발화 진행 중이면 무시
@@ -638,17 +721,24 @@ function handleSend() {
   updateLeftPanel(step);
 
   // 공감 멘트 생성 (입력이 있을 때만) → advanceTeacher에 전달
-  const passage = step["지문"] || step["발화"] || "";
-  let lastTeacherText = "";
-  for (let i = currentIndex - 1; i >= 0; i--) {
-    if (scenarioData[i]["역할"] !== "학생") {
-      lastTeacherText = scenarioData[i]["발화"] || "";
-      break;
+  let empathy = "";
+  if (text) {
+    const passage = step["지문"] || step["발화"] || "";
+    let lastTeacherText = "";
+    for (let i = currentIndex - 1; i >= 0; i--) {
+      if (scenarioData[i]["역할"] !== "학생") {
+        lastTeacherText = scenarioData[i]["발화"] || "";
+        break;
+      }
     }
+    // 다음 선생님 대사를 미리 조회 (Gemini 맥락 제공용)
+    const nextTeacherText = peekNextTeacherText(currentIndex + 1);
+
+    // Gemini API 호출 (실패 시 로컬 공감으로 자동 폴백)
+    empathy = await callGeminiForEmpathy(
+      text, lastTeacherText, nextTeacherText, passage, isVoice
+    );
   }
-  const empathy = text
-    ? buildEmpathy(text, passage, lastTeacherText, isVoice)
-    : "";
 
   // 학생 행 넘기고 다음 선생님 발화로 (공감 멘트 전달)
   currentIndex++;
