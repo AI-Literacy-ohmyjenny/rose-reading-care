@@ -379,6 +379,14 @@ async function callGeminiForEmpathy(studentText, lastTeacherText, nextTeacherTex
     "너는 초등 독서상담가 '로즈 선생님'이야.",
     "아이의 말을 경청하고 칭찬해준 뒤, 자연스럽게 다음 질문으로 대화를 이끌어가야 해.",
     "",
+    "★ 감정 분석 원칙 (가장 중요!):",
+    "- 아이의 답변에 담긴 감정을 먼저 정확히 파악해.",
+    "- 긍정(좋아, 재밌어, 신기해) → 함께 기뻐하며 칭찬해줘.",
+    "- 부정(무서워, 싫어, 슬퍼, 어려워) → 절대 '기분이 좋아졌어'처럼 감정을 뒤집지 마.",
+    "  부정 감정에는 반드시 '그랬구나, 무서울 수도 있지. 솔직하게 말해줘서 고마워'처럼",
+    "  아이의 감정을 있는 그대로 인정하고 수용하는 말을 먼저 해줘.",
+    "- 중립/짧은 답(네, 아니요) → 가볍게 한마디만 공감해줘.",
+    "",
     "반드시 지켜야 할 규칙:",
     "- 아이의 답변에 대해 따뜻하고 다정하게 1~2문장으로 공감하거나 칭찬해줘.",
     "- 절대로 네가 새로운 질문을 만들지 마. 다음에 이어질 시나리오 대사가 별도로 있어.",
@@ -660,12 +668,8 @@ async function advanceTeacher(pendingEmpathy = "") {
     teacherCount++;
   }
 
-  // 시나리오 끝
+  // 시나리오 끝 — CSV 마지막 대사가 인사를 포함하므로 추가 메시지 없이 종료
   setReadingState(false);
-  await delay(TEACHER_DELAY_MS);
-  const endMsg = "오늘 독서 상담이 끝났어요. 수고했어요!";
-  showMessage("선생님", endMsg + " 🌸");
-  await speakTeacher(endMsg);
   studentInput.placeholder = PLACEHOLDER_END;
   isAdvancing = false;
 }
@@ -746,6 +750,54 @@ async function handleSend() {
 }
 
 /**
+ * 마지막 선생님 대사가 길 경우 3단락으로 분할하여 순차 표시되도록 한다.
+ * scenarioData 배열의 마지막 항목을 3개로 쪼갠다.
+ */
+function splitFinalMessage() {
+  if (scenarioData.length === 0) return;
+
+  // 마지막 선생님 행 찾기
+  let lastIdx = scenarioData.length - 1;
+  while (lastIdx >= 0 && scenarioData[lastIdx]["역할"] === "학생") lastIdx--;
+  if (lastIdx < 0) return;
+
+  const lastStep = scenarioData[lastIdx];
+  const fullText = lastStep["발화"] || "";
+
+  // 충분히 긴 대사만 분할 (100자 이상)
+  if (fullText.length < 100) return;
+
+  // 3단락 분할 기준 문장
+  const splitPoint1 = "오늘 선생님이랑 같이 읽어 본";
+  const splitPoint2 = "오늘도 홈런이랑 책 읽어서";
+
+  const idx1 = fullText.indexOf(splitPoint1);
+  const idx2 = fullText.indexOf(splitPoint2);
+
+  if (idx1 < 0 || idx2 < 0 || idx2 <= idx1) return; // 분할점 못 찾으면 원본 유지
+
+  const part1 = fullText.slice(0, idx1).trim();
+  const part2 = fullText.slice(idx1, idx2).trim();
+  const part3 = fullText.slice(idx2).trim();
+
+  if (!part1 || !part2 || !part3) return;
+
+  // 원본 행의 이미지/지문 정보 복사
+  const baseStep = { ...lastStep };
+
+  // 원본을 1단락으로 교체
+  scenarioData[lastIdx] = { ...baseStep, "발화": part1 };
+
+  // 2단락, 3단락 삽입
+  scenarioData.splice(lastIdx + 1, 0,
+    { ...baseStep, "발화": part2 },
+    { ...baseStep, "발화": part3 }
+  );
+
+  console.log("[분할] 마지막 대사를 3단락으로 분할 완료");
+}
+
+/**
  * 시나리오 CSV만 미리 로드 (화면 표시는 아직 안 함)
  */
 async function preloadData() {
@@ -768,6 +820,9 @@ async function preloadData() {
         return (parseInt(a["순서"], 10) || 0) - (parseInt(b["순서"], 10) || 0);
       });
     }
+
+    // 마지막 선생님 대사가 너무 길면 3단락으로 분할
+    splitFinalMessage();
 
     if (scenarioData.length === 0) {
       showMessage("선생님", "시나리오 데이터가 없어요. CSV를 확인해 주세요.");
