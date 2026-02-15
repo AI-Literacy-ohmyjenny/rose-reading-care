@@ -194,6 +194,7 @@ body {
 }
 
 .scene-image {
+  width: 100%;
   max-width: 100%;
   max-height: 100%;
   object-fit: contain;
@@ -560,22 +561,53 @@ body {
   box-shadow: none;
 }
 
-/* ========== 반응형 ========== */
+/* ========== 반응형: 태블릿 (≤900px) ========== */
 @media (max-width: 900px) {
+  html {
+    font-size: 16px;
+  }
+
   .app-container {
     flex-direction: column;
     height: 100vh;
+    height: 100dvh;          /* 모바일 주소창 고려 */
     border-radius: 0;
+    box-shadow: none;
   }
 
-  .left-panel,
+  /* 왼쪽(위쪽) 패널: 화면의 35% */
+  .left-panel {
+    flex: 0 0 35vh;
+    flex: 0 0 35dvh;
+    min-height: 0;
+  }
+
+  /* 오른쪽(아래쪽) 패널: 나머지 공간 */
   .right-panel {
     flex: 1;
     min-height: 0;
   }
 
   .image-area {
-    min-height: 160px;
+    min-height: 120px;
+    padding: var(--spacing-sm);
+  }
+
+  .scene-image {
+    width: 100%;
+    max-height: 100%;
+    object-fit: contain;
+  }
+
+  .text-area {
+    min-height: 100px;
+    max-height: 40%;
+    padding: var(--spacing-sm) var(--spacing-md);
+  }
+
+  .passage-text {
+    font-size: 1.15rem;
+    line-height: 1.9;
   }
 
   .teacher-area {
@@ -585,5 +617,182 @@ body {
   .teacher-avatar {
     width: 44px;
     height: 44px;
+  }
+
+  .chat-area {
+    padding: var(--spacing-xs) var(--spacing-sm);
+  }
+
+  .message-wrapper {
+    padding: 0.75rem 1rem;
+  }
+
+  .message-content {
+    font-size: 1rem;
+  }
+
+  .student-input {
+    min-height: 60px;
+    font-size: 1rem;
+  }
+
+  .btn-send {
+    min-height: 48px;
+    padding: 0.6rem 1.2rem;
+    font-size: 1rem;
+  }
+
+  .btn-mic {
+    height: 48px;
+  }
+}
+
+/* ========== 반응형: 스마트폰 (≤600px) ========== */
+@media (max-width: 600px) {
+  html {
+    font-size: 15px;
+  }
+
+  /* 위쪽 패널: 화면의 30% */
+  .left-panel {
+    flex: 0 0 30vh;
+    flex: 0 0 30dvh;
+  }
+
+  .image-area {
+    min-height: 80px;
+    padding: 0.4rem;
+  }
+
+  .text-area {
+    min-height: 60px;
+    max-height: 45%;
+    padding: 0.6rem 0.8rem;
+  }
+
+  .passage-text {
+    font-size: 1rem;
+    line-height: 1.8;
+  }
+
+  .teacher-area {
+    padding: 0.3rem 0.6rem;
+  }
+
+  .teacher-avatar {
+    width: 36px;
+    height: 36px;
+    border-width: 2px;
+  }
+
+  .avatar-icon {
+    font-size: 1.2rem;
+  }
+
+  .teacher-area::after {
+    font-size: 0.85rem;
+  }
+
+  .chat-area {
+    padding: 0.3rem 0.5rem;
+  }
+
+  .chat-messages {
+    gap: 0.6rem;
+    padding: 0.3rem 0.2rem 0.5rem;
+  }
+
+  .message-wrapper {
+    padding: 0.6rem 0.8rem;
+    border-radius: var(--radius-sm);
+    border-left-width: 4px;
+  }
+
+  .message-speaker {
+    font-size: 0.75rem;
+  }
+
+  .message-content {
+    font-size: 0.95rem;
+    line-height: 1.7;
+  }
+
+  .chat-input-area {
+    gap: 0.3rem;
+    padding: 0.5rem 0 0.3rem;
+  }
+
+  .student-input {
+    min-height: 52px;
+    max-height: 100px;
+    padding: 0.6rem 0.8rem;
+    font-size: 1rem;
+    border-radius: var(--radius-sm);
+  }
+
+  .student-input::placeholder {
+    font-size: 0.85rem;
+  }
+
+  .chat-btn-row {
+    gap: 0.3rem;
+  }
+
+  .btn-mic {
+    height: 46px;
+    min-width: 46px;
+    font-size: 1.2rem;
+    border-radius: var(--radius-sm);
+  }
+
+  .btn-send {
+    min-height: 46px;
+    padding: 0.5rem 1rem;
+    font-size: 1rem;
+    border-radius: var(--radius-sm);
+  }
+
+  /* 시작 오버레이 모바일 */
+  .start-icon {
+    font-size: 3rem;
+  }
+
+  .start-title {
+    font-size: 1.6rem;
+  }
+
+  .start-desc {
+    font-size: 1rem;
+  }
+
+  .btn-start {
+    padding: 0.8rem 2rem;
+    font-size: 1.05rem;
+  }
+}
+
+/* ========== 반응형: 작은 스마트폰 (≤400px) ========== */
+@media (max-width: 400px) {
+  html {
+    font-size: 14px;
+  }
+
+  .left-panel {
+    flex: 0 0 28vh;
+    flex: 0 0 28dvh;
+  }
+
+  .text-area {
+    min-height: 50px;
+    padding: 0.5rem 0.6rem;
+  }
+
+  .passage-text {
+    font-size: 0.95rem;
+    line-height: 1.7;
+  }
+
+  .message-content {
+    font-size: 0.9rem;
   }
 }
